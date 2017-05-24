@@ -233,8 +233,8 @@ window.headertag.partnerScopes.push(function() {
 
         var yourBidder = new Partner(config);
 
-        window.ConversantHtb = {};
-        window.ConversantHtb.render = yourBidder.renderAd;
+        window.headertag.ConversantHtb = {};
+        window.headertag.ConversantHtb.render = yourBidder.renderAd;
 
         window.headertag[PARTNER_ID] = {};
         window.headertag[PARTNER_ID].callback = yourBidder.responseCallback;
