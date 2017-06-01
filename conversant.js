@@ -93,8 +93,27 @@ window.headertag.partnerScopes.push(function() {
          *     }
          *
          */
+        
+        console.log(config);
 
-        /* PUT CODE HERE */
+        // Conversant only accepts a single site id on a request.
+        // Its specified on the top level of the config for this reason.
+        if (!config.hasOwnProperty("site_id")) {
+            err.push("Conversant 'site_id' is requred.");
+            console.log("Conversant 'site_id' is requred.");   
+        } else {
+            // site_id has to be a string
+        	if (!Utils.isString(config.site_id)) {
+                err.push("Conversant 'site_id' needs to be a string.");
+                console.log("Conversant 'site_id' needs to be a string.");  
+        	} else {
+        	    //site_id can't be empty
+        	    if (Utils.isEmpty(config.site_id)) {
+        	        err.push("Conversant 'site_id' cannot be an empty string.");
+        	        console.log("Conversant 'site_id' cannot be an empty string.");  
+        	    }
+        	}
+        }
 
         /* -------------------------------------------------------------------------- */
 
@@ -132,13 +151,104 @@ window.headertag.partnerScopes.push(function() {
          *
          */
 
-        /* PUT CODE HERE */
-
+				var xSlot = config.xSlots[xSlotName];
+		
+				// sizes is required per xSlot
+				if (!xSlot.hasOwnProperty("sizes")) {
+					err.push("Conversant's "+xSlotName+" require 'sizes' definition.");
+					console.log("Conversant's "+xSlotName+" require 'sizes' definition.");
+				} else {
+					//Sizes has to be an array
+					if (!Utils.isArray(xSlot.sizes)) {
+						err.push("Conversant's xSlot "+xSlotName+"'s 'sizes' must be an array.");
+						console.log("Conversant's xSlot "+xSlotName+"'s 'sizes' must be an array.");
+					} else {
+						//sizes can't be empty
+						if (Utils.isEmpty(xSlot.sizes)) { 
+							err.push("Conversant's xSlot "+xSlotName+"'s 'sizes' array cannot be empty.");
+							console.log("Conversant's xSlot "+xSlotName+"'s 'sizes' array cannot be empty.");
+						} else {
+							//If they only have a 1-D array,
+							//make sure there are exactly two elements
+							if(!Utils.isArray(xSlot.sizes[0])){
+								//[w,h] will have length 2
+								if (xSlot.sizes.length !== 2) {
+								  err.push("Conversant's xSlot "+xSlotName+"'s 'sizes' array is incorrect length.");
+								  console.log("Conversant's xSlot "+xSlotName+"'s 'sizes' array is incorrect length.");
+								}
+							}
+						}
+					}
+				}
+		
+				//secure is optional
+				if (xSlot.hasOwnProperty("secure")) {
+					if (!Utils.isBoolean(xSlot.secure) && !Utils.isNumber(xSlot.secure)) {
+						err.push("Conversant's xSlot "+xSlotName+"'s 'secure' must be a boolean.");
+						console.log("Conversant's xSlot "+xSlotName+"'s 'secure' must be a boolean.");
+					}
+				}
+				
+				//bidfloor is optional
+				if (xSlot.hasOwnProperty("bidfloor")) {
+					if (!Utils.isNumber(xSlot.bidfloor)) {
+						err.push("Conversant's xSlot "+xSlotName+"'s 'bidfloor' must be a float.");
+						console.log("Conversant's xSlot "+xSlotName+"'s 'bidfloor' must be a float.");
+					}
+				}
+				
+				//tag_id is optional
+				if (xSlot.hasOwnProperty("tag_id")) {
+					if (!Utils.isString(xSlot.tag_id)) {
+						err.push("Conversant's xSlot "+xSlotName+"'s 'tag_id' must be a string.");
+						console.log("Conversant's xSlot "+xSlotName+"'s 'tag_id' must be a string.");
+					}
+				}
+				
+				//position is optional
+				if (xSlot.hasOwnProperty("position")) {
+					if (!Utils.isNumber(xSlot.position)) {
+						err.push("Conversant's xSlot "+xSlotName+"'s 'position' must be an integer.");
+						console.log("Conversant's xSlot "+xSlotName+"'s 'position' must be an integer.");
+					}
+				}
+				
+				//mimes is optional
+				if (xSlot.hasOwnProperty("mimes")) {
+					if (!Utils.isArray(xSlot.mimes)) {
+						err.push("Conversant's xSlot "+xSlotName+"'s 'mimes' must be an array.");
+						console.log("Conversant's xSlot "+xSlotName+"'s 'mimes' must be an array.");
+					}
+				}
+				
+				//maxduration is optional
+				if (xSlot.hasOwnProperty("maxduration")) {
+					if (!Utils.isNumber(xSlot.maxduration)) {
+						err.push("Conversant's xSlot "+xSlotName+"'s 'maxduration' must be a integer.");
+						console.log("Conversant's xSlot "+xSlotName+"'s 'maxduration' must be a integer.");
+					}
+				}
+				
+				//api is optional
+				if (xSlot.hasOwnProperty("api")) {
+					if (!Utils.isArray(xSlot.api)) {
+						err.push("Conversant's xSlot "+xSlotName+"'s 'api' must be an array.");
+						console.log("Conversant's xSlot "+xSlotName+"'s 'api' must be an array.");
+					}
+				}
+				
+				//protocols is optional
+				if (xSlot.hasOwnProperty("protocols")) {
+					if (!Utils.isArray(xSlot.protocols)) {
+						err.push("Conversant's xSlot "+xSlotName+"'s 'protocols' must be an array.");
+						console.log("Conversant's xSlot "+xSlotName+"'s 'protocols' must be an array.");
+					}
+				}
         /* -------------------------------------------------------------------------- */
 
             }
         }
-
+        
         if (!config.hasOwnProperty('mapping') || typeof config.xSlots !== 'object' || Utils.isArray(config.xSlots)) {
             err.push('mapping either not provided or invalid.');
         } else {
@@ -388,8 +498,9 @@ window.headertag.partnerScopes.push(function() {
              *         ...
              *     }
              */
-
-            /* PUT CODE HERE */
+            
+            // Production Endpoint
+            var conversant_url = '//media.msg.dotomi.com/s2s/header/24';
 
             /* -------------------------------------------------------------------------- */
 
