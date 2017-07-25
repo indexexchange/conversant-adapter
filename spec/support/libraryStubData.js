@@ -1,5 +1,10 @@
 var partnerStub = require('./partnerStub.js');
 var openRtbStub = require('./openRtbStub.js');
+
+/* Instantiate mock browser objects */
+var MockBrowser = require('mock-browser').mocks.MockBrowser;
+var mock = new MockBrowser();
+
 var libraryStubData = {
     'bid-transformer.js': function (config) {
         return {
@@ -23,6 +28,15 @@ var libraryStubData = {
         },
         getLanguage: function () {
             return 'en-US';
+        },
+        getScreenWidth: function () { 
+        	return 1024;
+        },
+        getScreenHeight: function () {
+        	return 768;
+        },
+        getPageUrl: function () {
+        	return 'http://www.indexexchange.com';
         }
     },
     'classify.js': {
@@ -92,6 +106,14 @@ var libraryStubData = {
     },
     'conversant-htb-validator.js': function () {
         return null;
+    },
+    'conversant-htb-utils.js' : {
+    	getWindow: function () { 
+    		return mock.getWindow();
+    	},
+    	getNavigator: function () {
+    		return mock.getNavigator();
+    	}
     }
 };
 module.exports = libraryStubData;

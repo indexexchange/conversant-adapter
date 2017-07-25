@@ -27,6 +27,7 @@
  */
 function generateReturnParcels(profile, partnerConfig) {
     var returnParcels = [];
+    var counter = 0;
 
     for (var htSlotName in partnerConfig.mapping) {
         if (partnerConfig.mapping.hasOwnProperty(htSlotName)) {
@@ -37,12 +38,13 @@ function generateReturnParcels(profile, partnerConfig) {
                     partnerId: profile.partnerId,
                     htSlot: {
                         getId: function () {
-                            return htSlotName
+                            return '' + htSlotName
                         }
                     },
                     ref: "",
                     xSlotRef: partnerConfig.xSlots[xSlotName],
-                    requestId: '_' + Date.now()
+                    requestId: '_' + Date.now(),
+                    cnvrId: '' + htSlotName + '_' + counter++
                 });
             }
         }
@@ -56,7 +58,7 @@ function generateReturnParcels(profile, partnerConfig) {
  * ---------------------------------- */
 
 describe('parseResponse', function () {
-
+    
     /* Setup and Library Stub
      * ------------------------------------------------------------- */
     var inspector = require('schema-inspector');
@@ -67,7 +69,7 @@ describe('parseResponse', function () {
     var expect = require('chai').expect;
     /* -------------------------------------------------------------------- */
 
-    /* Instatiate your partner module */
+    /* Instantiate your partner module */
     var partnerModule = partnerModule(partnerConfig);
     var partnerProfile = partnerModule.profile;
 
@@ -103,21 +105,70 @@ describe('parseResponse', function () {
          *
          *
          * The response should contain the response for all of the parcels in the array.
-         * For SRA, this could be mulitple items, for MRA it will always be a single item.
+         * For SRA, this could be multiple items, for MRA it will always be a single item.
          */
 
-        var adResponseMock1 = []
+        var adResponseMock1 = {
+        		  "seatbid": [
+        			    {
+        			      "bid": [
+        			        {
+        			          "adm": "<img src=\"http://cdn.fastclick.net/media2052488.jpg\">",
+        			          "crid": "2101274",
+        			          "impid": "htSlot1_0",
+        			          "price": 0.0045,
+        			          "w": 300,
+        			          "h": 250,
+        			          "adomain": [
+        			            "https://na13.salesforce.com"
+        			          ],
+        			          "iurl": "http://media.fastclick.net/win.bid",
+        			          "id": "htSlot1_0"
+        			        },
+        			        {
+        			          "adm": "<img src=\"http://cdn.fastclick.net/media2052489.jpg\">",
+        			          "crid": "2166499",
+        			          "impid": "htSlot1_1",
+        			          "price": 0.0049,
+        			          "w": 300,
+        			          "h": 600,
+        			          "adomain": [
+        			            "https://na13.salesforce.com"
+        			          ],
+        			          "iurl": "http://media.fastclick.net/win.bid",
+        			          "id": "htSlot1_1"
+        			        },
+        			        {
+        			          "adm": "<img src=\"http://cdn.fastclick.net/media2052490.jpg\">",
+        			          "crid": "2098821",
+        			          "impid": "htSlot2_2",
+        			          "price": 0.0012,
+        			          "w": 728,
+        			          "h": 90,
+        			          "adomain": [
+        			            "https://na13.salesforce.com"
+        			          ],
+        			          "iurl": "http://media.fastclick.net/win.bid",
+        			          "id": "htSlot2_2"
+        			        }
+        			      ]
+        			    }
+        			  ],
+        			  "id": "_jjzp7ar12"
+        			};
         /* ------------------------------------------------------------------------*/
 
         /* IF SRA, parse all parcels at once */
         if (partnerProfile.architecture) partnerModule.parseResponse(1, adResponseMock1, returnParcels1);
+        
+        //console.log(JSON.stringify(returnParcels1));
 
         /* Simple type checking on the returned objects, should always pass */
         it('each parcel should have the required fields set', function () {
             for (var i = 0; i < returnParcels1.length; i++) {
 
                 /* IF MRA, parse one parcel at a time */
-                if (!partnerProfile.architecture) partnerModule.parseResponse(1, adResponseMock1, [returnParcels1[i]]);
+                if (!partnerProfile.architecture) partneqrModule.parseResponse(1, adResponseMock1, [returnParcels1[i]]);
 
                 var result = inspector.validate({
                     type: 'object',
@@ -178,8 +229,15 @@ describe('parseResponse', function () {
                  * The parcels have already been parsed and should contain all the
                  * necessary demand.
                  */
-
                 expect(returnParcels1[i]).to.exist;
+
+            	var xSlotRef = returnParcels1[i].xSlotRef;
+            	var size = returnParcels1[i].size;
+            	var bids = adResponseMock1.seatbid[0].bid;
+
+            	expect(xSlotRef.sizes.find(item => item[0] === size[0] && item[1] == size[1])).to.be.an('array');
+            	expect(returnParcels1[i].price).to.equal(bids[i].price);
+            	expect(returnParcels1[i].adm).to.equal(bids[i].adm);
             }
         });
         /* -----------------------------------------------------------------------*/
@@ -213,7 +271,30 @@ describe('parseResponse', function () {
          * For SRA, this could be mulitple items, for MRA it will always be a single item.
          */
 
-        var adResponseMock2 = [];
+        var adResponseMock2 = {
+      		  "seatbid": [
+  			    {
+  			      "bid": [
+  			        {
+  			          "impid": "htSlot1_0",
+  			          "price": 0.0000,
+  			          "id": "htSlot1_0"
+  			        },
+  			        {
+   			          "impid": "htSlot1_1",
+  			          "price": 0.0000,
+  			          "id": "htSlot1_1"
+  			        },
+  			        {
+  			          "impid": "htSlot2_2",
+  			          "price": 0.0000,
+  			          "id": "htSlot2_2"
+  			        }
+  			      ]
+  			    }
+  			  ],
+  			  "id": "_jjzp7ar12"
+  			};
         /* ------------------------------------------------------------------------*/
 
         /* IF SRA, parse all parcels at once */
@@ -250,14 +331,14 @@ describe('parseResponse', function () {
                  * The parcels have already been parsed and should contain all the
                  * necessary demand.
                  */
-
+            	
                 expect(returnParcels2[i]).to.exist;
             }
         });
         /* -----------------------------------------------------------------------*/
     });
 
-    describe('should correctly parse deals: ', function () {
+    xdescribe('should correctly parse deals: ', function () {
         var returnParcels3 = generateReturnParcels(partnerModule.profile, partnerConfig);
 
         /* ---------- MODIFY THIS TO MATCH YOUR AD RESPONSE FORMAT ---------------*/

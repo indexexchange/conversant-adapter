@@ -37,7 +37,7 @@ function generateReturnParcels(profile, partnerConfig) {
                     partnerId: profile.partnerId,
                     htSlot: {
                         getId: function () {
-                            return htSlotName
+                            return '' + htSlotName
                         }
                     },
                     ref: "",
@@ -51,12 +51,129 @@ function generateReturnParcels(profile, partnerConfig) {
     return returnParcels;
 }
 
+/**
+ * Return a simplified openrtb schema to validate Conversant bid request
+ * @returns {object}
+ */
+
+function getOpenrtbSchema() {
+	return {
+		type: 'object',
+		properties: {
+			id: {
+				type: 'string',
+				minLength: 1
+			},
+			imp: {
+				type: 'array',
+				items: {
+					type: 'object',
+					properties: {
+						id: {
+							type: 'string'
+						},
+						secure: {
+							type: 'integer',
+							optional: true
+						},
+						displaymanager: {
+							type: 'string'
+						},
+						displaymanagerver: {
+							type: 'string'
+						},
+						tagid: {
+							type: 'string',
+							optional: true
+						},
+						bidfloor: {
+							type: 'number',
+							optional: true
+						},
+						banner: {
+							type: 'object',
+							properties: {
+								format: {
+									type: 'array',
+									items: {
+										type: 'object',
+										properties: {
+											w: {
+												type: 'integer'
+											},
+											h: {
+												type: 'integer'
+											}
+										}
+									}
+								},
+								pos: {
+									type: 'integer',
+									optional: true
+								}
+							}
+						}
+					}
+				}
+			},
+			site: {
+				type: 'object',
+				properties: {
+					id: {
+						type: 'string'
+					},
+					mobile: {
+						type: 'integer',
+						gte: 0,
+						lte: 1
+					},
+					page: {
+						type: 'string'
+					}
+				}
+			},
+			device: {
+				type: 'object',
+				properties: {
+					ua: {
+						type: 'string'
+					},
+					dnt: {
+						type: 'integer',
+						gte: 0,
+						lte: 1
+					},
+					h: {
+						type: 'integer'
+					},
+					w: {
+						type: 'integer'
+					},
+					language: {
+						type: 'string',
+						optional: true
+					},
+					make: {
+						type: 'string',
+						optional: true
+					}
+				}
+			},
+			at: {
+				type: 'integer',
+				gte: 0,
+				lte: 3
+			}
+		}
+	};
+}
+
 /* =====================================
  * Testing
  * ---------------------------------- */
 
 describe('generateRequestObj', function () {
-
+	
     /* Setup and Library Stub
      * ------------------------------------------------------------- */
     var inspector = require('schema-inspector');
@@ -67,7 +184,7 @@ describe('generateRequestObj', function () {
     var expect = require('chai').expect;
     /* -------------------------------------------------------------------- */
 
-    /* Instatiate your partner module */
+    /* Instantiate your partner module */
     var partnerModule = partnerModule(partnerConfig);
     var partnerProfile = partnerModule.profile;
 
@@ -81,6 +198,7 @@ describe('generateRequestObj', function () {
     /* -------- IF SRA, generate a single request for all the parcels -------- */
     if (partnerProfile.architecture) {
         requestObject = partnerModule.generateRequestObj(returnParcels);
+        //console.log(JSON.stringify(requestObject));
 
         /* Simple type checking, should always pass */
         it('SRA - should return a correctly formatted object', function () {
@@ -92,9 +210,7 @@ describe('generateRequestObj', function () {
                         type: 'string',
                         minLength: 1
                     },
-                    data: {
-                        type: 'object'
-                    },
+                    data: getOpenrtbSchema(),
                     callbackId: {
                         type: 'string',
                         minLength: 1
@@ -118,7 +234,32 @@ describe('generateRequestObj', function () {
             /* Write unit tests to verify that your bid request url contains the correct
                 * request params, url, etc.
                 */
-            expect(requestObject).to.exist;
+        	var parser = require('url');
+        	var url = parser.parse(requestObject.url);
+        	
+        	expect(url.protocol).to.match(/^http.?:/);
+        	expect(url.pathname).to.match(/\/s2s\/header/);
+        	expect(url.hostname).to.match(/dotomi\.com|vcmedia.com/);
+        });
+        
+        it('check banner objects', function () {
+        	for (var i = 0; i < requestObject.data.imp.length; ++i) {
+        		var bid = requestObject.data.imp[i];
+        		var xSlot = returnParcels[i].xSlotRef;
+        		expect(bid).to.exist;
+        		expect(bid.banner.format.length).to.equal(xSlot.sizes.length);
+        		if (typeof xSlot.position != 'undefined') {
+        			expect(bid.banner.pos).to.equal(xSlot.position);
+        		}
+        		if (typeof xSlot.bidfloor != 'undefined') {
+        			expect(bid.bidfloor).to.equal(xSlot.bidfloor);
+        		}
+        	}
+        });
+        
+        it('check site id', function () {
+        	expect(requestObject.data.site.id === partnerConfig.siteId).to.be.true;
+        	expect(requestObject.callbackId === requestObject.data.id).to.be.true;
         });
         /* -----------------------------------------------------------------------*/
 
@@ -168,5 +309,4 @@ describe('generateRequestObj', function () {
             /* -----------------------------------------------------------------------*/
         }
     }
-
 });
