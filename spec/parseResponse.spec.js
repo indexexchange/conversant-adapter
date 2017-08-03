@@ -38,13 +38,14 @@ function generateReturnParcels(profile, partnerConfig) {
                     partnerId: profile.partnerId,
                     htSlot: {
                         getId: function () {
-                            return '' + htSlotName
+                            return htSlotName
                         }
                     },
                     ref: "",
                     xSlotRef: partnerConfig.xSlots[xSlotName],
                     requestId: '_' + Date.now(),
-                    cnvrId: '' + htSlotName + '_' + counter++
+                    xSlotName: xSlotName,
+                    cnvrId: xSlotName + '_' + counter++
                 });
             }
         }
@@ -123,7 +124,7 @@ describe('parseResponse', function () {
         			            "https://na13.salesforce.com"
         			          ],
         			          "iurl": "http://media.fastclick.net/win.bid",
-        			          "id": "htSlot1_0"
+        			          "id": "1_0"
         			        },
         			        {
         			          "adm": "<img src=\"http://cdn.fastclick.net/media2052489.jpg\">",
@@ -136,7 +137,7 @@ describe('parseResponse', function () {
         			            "https://na13.salesforce.com"
         			          ],
         			          "iurl": "http://media.fastclick.net/win.bid",
-        			          "id": "htSlot1_1"
+        			          "id": "2_1"
         			        },
         			        {
         			          "adm": "<img src=\"http://cdn.fastclick.net/media2052490.jpg\">",
@@ -149,7 +150,7 @@ describe('parseResponse', function () {
         			            "https://na13.salesforce.com"
         			          ],
         			          "iurl": "http://media.fastclick.net/win.bid",
-        			          "id": "htSlot2_2"
+        			          "id": "3_2"
         			        }
         			      ]
         			    }
@@ -278,17 +279,17 @@ describe('parseResponse', function () {
   			        {
   			          "impid": "htSlot1_0",
   			          "price": 0.0000,
-  			          "id": "htSlot1_0"
+  			          "id": "1_0"
   			        },
   			        {
    			          "impid": "htSlot1_1",
   			          "price": 0.0000,
-  			          "id": "htSlot1_1"
+  			          "id": "2_1"
   			        },
   			        {
   			          "impid": "htSlot2_2",
   			          "price": 0.0000,
-  			          "id": "htSlot2_2"
+  			          "id": "3_2"
   			        }
   			      ]
   			    }

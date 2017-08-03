@@ -37,12 +37,13 @@ function generateReturnParcels(profile, partnerConfig) {
                     partnerId: profile.partnerId,
                     htSlot: {
                         getId: function () {
-                            return '' + htSlotName
+                            return htSlotName
                         }
                     },
                     ref: "",
                     xSlotRef: partnerConfig.xSlots[xSlotName],
-                    requestId: '_' + Date.now()
+                    requestId: '_' + Date.now(),
+                    xSlotName: xSlotName /* Index team confirmed that this property is part of each parcel */
                 });
             }
         }
@@ -214,11 +215,24 @@ describe('generateRequestObj', function () {
                     callbackId: {
                         type: 'string',
                         minLength: 1
+                    },
+                    networkParamOverrides: {
+                    	type: 'object',
+                    	properties: {
+                    		method: {
+                    			type: 'string',
+                    			eq: 'POST'
+                    		},
+                    		contentType: {
+                    			type: 'string',
+                    			eq: 'application/json'
+                    		}
+                    	}
                     }
                 }
             }, requestObject);
 
-            expect(result.valid).to.be.true;
+            expect(result.valid, result.format()).to.be.true;
         });
 
         /* Test that the generateRequestObj function creates the correct object by building a URL

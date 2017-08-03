@@ -128,18 +128,19 @@ function ConversantHtb(configs) {
     	var secure = (Browser.getProtocol().search(/^https:/i) >= 0) ? 1 : 0;
     	var counter = 0;
 
-    	// Each parcel is a unique combination of a htSlot and xSlot
-    	// However, since it only contains the htSlot name, but not the xSlot
-    	// name, there isn't a sure way of constructing a unique id, and so
-    	// we'll tag the parcel with an id that will be used to match the
-    	// returned bids later.
+    	// Each parcel is a unique combination of a htSlot and xSlot.
+    	// Since Conversant bid requests do not require unique placement ids, 
+    	// we create an id based on xSlotName and stash it as cnvrId in the parcel
+    	// so the bid responses and the parcels can be matched up.
+    	// It is always possible to use the requestId in the parcels
+    	// as an alternative approach.
     	
     	for (var i = 0; i < returnParcels.length; ++i) {
     		var parcel = returnParcels[i];
     		var xSlot = parcel.xSlotRef;
     		var imp = {};
     		var banner = {};
-    		var id = parcel.htSlot.getId() + '_' +  counter++;
+    		var id = parcel.xSlotName + '_' +  counter++;
     		
     		parcel.cnvrId = id;
     		
@@ -203,7 +204,9 @@ function ConversantHtb(configs) {
      */
     function __generateRequestObj(returnParcels) {
         var queryObj = {};
-        var baseUrl = Browser.getProtocol() + 'media.msg.dotomi.com/s2s/header/24';
+        
+        /* todo : specify length and format for cache buster */
+        var baseUrl = Browser.getProtocol() + 'media.msg.dotomi.com/s2s/header/24?cb=' + System.generateUniqueId();
 
         /* =============================================================================
          * STEP 2  | Generate Request URL
@@ -271,7 +274,13 @@ function ConversantHtb(configs) {
         return {
             url: baseUrl,
             data: queryObj,
-            callbackId: queryObj.id
+            callbackId: queryObj.id,
+            
+            /* Signal a POST request and the content type */
+            networkParamOverrides: {
+            	method: 'POST',
+            	contentType: 'application/json'
+            }
         };
     }
 
