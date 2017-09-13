@@ -169,7 +169,7 @@ describe('parseResponse', function () {
             for (var i = 0; i < returnParcels1.length; i++) {
 
                 /* IF MRA, parse one parcel at a time */
-                if (!partnerProfile.architecture) partneqrModule.parseResponse(1, adResponseMock1, [returnParcels1[i]]);
+                if (!partnerProfile.architecture) partnerModule.parseResponse(1, adResponseMock1, [returnParcels1[i]]);
 
                 var result = inspector.validate({
                     type: 'object',
