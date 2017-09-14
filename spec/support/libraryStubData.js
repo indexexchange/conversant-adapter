@@ -15,16 +15,16 @@ var libraryStubData = {
     },
     'browser.js': {
         getProtocol: function () {
-            return 'http://';
+            return 'http:';
         },
         getReferrer: function () {
             return 'localhost';
         },
         getPageUrl: function () {
-            return 'localhost';
+            return 'http://localhost';
         },
         getUserAgent: function () {
-            return 'desktop';
+            return 'Mozilla/5.0 (Windows; U; Windows NT 6.1; rv:2.2) Gecko/20110201';
         },
         getLanguage: function () {
             return 'en-US';
@@ -37,7 +37,8 @@ var libraryStubData = {
         },
         getPageUrl: function () {
         	return 'http://www.indexexchange.com';
-        }
+        },
+        topWindow: mock.getWindow()
     },
     'classify.js': {
         derive: function (baseClass, derivedClass) {
@@ -106,14 +107,6 @@ var libraryStubData = {
     },
     'conversant-htb-validator.js': function () {
         return null;
-    },
-    'conversant-htb-utils.js' : {
-    	getWindow: function () { 
-    		return mock.getWindow();
-    	},
-    	getNavigator: function () {
-    		return mock.getNavigator();
-    	}
     }
 };
 module.exports = libraryStubData;

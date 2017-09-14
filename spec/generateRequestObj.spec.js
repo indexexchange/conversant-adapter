@@ -222,10 +222,6 @@ describe('generateRequestObj', function () {
                     		method: {
                     			type: 'string',
                     			eq: 'POST'
-                    		},
-                    		contentType: {
-                    			type: 'string',
-                    			eq: 'application/json'
                     		}
                     	}
                     }
@@ -250,10 +246,10 @@ describe('generateRequestObj', function () {
                 */
         	var parser = require('url');
         	var url = parser.parse(requestObject.url);
-        	
+        	        	
         	expect(url.protocol).to.match(/^http.?:/);
         	expect(url.pathname).to.match(/\/s2s\/header/);
-        	expect(url.hostname).to.match(/dotomi\.com|vcmedia.com/);
+        	expect(url.hostname).to.match(/media\.msg\.dotomi\.com/);
         });
         
         it('check banner objects', function () {

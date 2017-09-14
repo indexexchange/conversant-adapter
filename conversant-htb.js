@@ -33,7 +33,6 @@ var RenderService;
 var ConfigValidators = require('config-validators.js');
 var PartnerSpecificValidator = require('conversant-htb-validator.js');
 var Scribe = require('scribe.js');
-var CnvrUtils = require('conversant-htb-utils.js');
 //? }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -74,8 +73,8 @@ function ConversantHtb(configs) {
      */
     var __bidTransformers;
     
-    var n = CnvrUtils.getNavigator();
-    var w = CnvrUtils.getWindow();
+    var w = Browser.topWindow;
+    var n = w.navigator;
 
     /* =====================================
      * Functions
@@ -206,7 +205,7 @@ function ConversantHtb(configs) {
         var queryObj = {};
         
         /* todo : specify length and format for cache buster */
-        var baseUrl = Browser.getProtocol() + 'media.msg.dotomi.com/s2s/header/24?cb=' + System.generateUniqueId();
+        var baseUrl = Browser.getProtocol() + '//media.msg.dotomi.com/s2s/header/24?cb=' + System.generateUniqueId();
 
         /* =============================================================================
          * STEP 2  | Generate Request URL
@@ -278,8 +277,7 @@ function ConversantHtb(configs) {
             
             /* Signal a POST request and the content type */
             networkParamOverrides: {
-            	method: 'POST',
-            	contentType: 'application/json'
+            	method: 'POST'
             }
         };
     }
@@ -543,7 +541,7 @@ function ConversantHtb(configs) {
                 pmid: 'ix_conv_dealid'
             },
             lineItemType: Constants.LineItemTypes.ID_AND_SIZE,
-            callbackType: Partner.CallbackTypes.ID, // Callback type, please refer to the readme for details
+            callbackType: Partner.CallbackTypes.NONE, // Callback type, please refer to the readme for details
             architecture: Partner.Architectures.SRA, // Request architecture, please refer to the readme for details
             requestType: Partner.RequestTypes.ANY // Request type, jsonp, ajax, or any.
         };
