@@ -407,7 +407,7 @@ function ConversantHtb(configs) {
             var bidWidth = curBid.w; // the width of the given slot
             var bidHeight = curBid.h; // the height of the given slot
             var bidCreative = curBid.adm; // the creative/adm for the given slot that will be rendered if is the winner.
-            var bidDealId; // the dealId if applicable for this slot.  no deal supported yet.
+            var bidDealId = ''; // the dealId if applicable for this slot.  no deal supported yet.
             var bidIsPass = bidPrice <= 0 ? true : false; // true/false value for if the module returned a pass for this slot.
 
             /* ---------------------------------------------------------------------------------------*/
