@@ -125,51 +125,44 @@ function ConversantHtb(configs) {
     function __getImps(returnParcels) {
     	var conversantImps = [];
     	var secure = (Browser.getProtocol().search(/^https:/i) >= 0) ? 1 : 0;
-    	var counter = 0;
 
     	// Each parcel is a unique combination of a htSlot and xSlot.
     	// Since Conversant bid requests do not require unique placement ids, 
-    	// we create an id based on xSlotName and stash it as cnvrId in the parcel
-    	// so the bid responses and the parcels can be matched up.
-    	// It is always possible to use the requestId in the parcels
-    	// as an alternative approach.
+    	// requestIds are used instead.
     	
     	for (var i = 0; i < returnParcels.length; ++i) {
     		var parcel = returnParcels[i];
     		var xSlot = parcel.xSlotRef;
     		var imp = {};
     		var banner = {};
-    		var id = parcel.xSlotName + '_' +  counter++;
-    		
-    		parcel.cnvrId = id;
-    		
-    		imp.id = id;
+
+    		imp.id = parcel.requestId;
     		imp.secure = secure;
     		imp.displaymanager = '40834-index-client';
     		imp.displaymanagerver = '0.0.1';
-    		
+
     		if (xSlot.hasOwnProperty('bidfloor')) {
     			imp.bidfloor = xSlot.bidfloor;
     		}
-    		
+
     		if (xSlot.hasOwnProperty('placementId')) {
     			imp.tagid = xSlot.placementId;
     		}
-    		
+
     		var format = [];
     		for (var size_idx in xSlot.sizes) {
     			var size = xSlot.sizes[size_idx];
     			format.push({w: size[0], h: size[1]});
     		}
-    		
+
     		banner.format = format;
-    		
+
     		if (xSlot.hasOwnProperty('position')) {
     			banner.pos = xSlot.position;
     		}
-    		
+
     		imp.banner = banner;
-    		
+
     		conversantImps.push(imp);
     	}
 
@@ -297,10 +290,12 @@ function ConversantHtb(configs) {
         /* get callbackId from adResponse here */
         var callbackId = 0;
         
-        if (adResponse.hasOwnProperty('id'))
+        if (adResponse.hasOwnProperty('id')) {
         	callbackId = adResponse.id;
-        else
+        }
+        else {
             throw Whoopsie('Cnvr bid response missing id', adResponse);
+        }
         
         __baseClass._adResponseStore[callbackId] = adResponse;
     }
@@ -389,7 +384,7 @@ function ConversantHtb(configs) {
                  * key to a key that represents the placement in the configuration and in the bid responses.
                  */
             	
-                if (unusedReturnParcels[j].cnvrId === bids[i].id) { // change this
+                if (unusedReturnParcels[j].requestId === bids[i].id) { 
                     curReturnParcel = unusedReturnParcels[j];
                     curBid = bids[i];
                     unusedReturnParcels.splice(j, 1);

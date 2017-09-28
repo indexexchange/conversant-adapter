@@ -27,7 +27,6 @@
  */
 function generateReturnParcels(profile, partnerConfig) {
     var returnParcels = [];
-    var counter = 0;
 
     for (var htSlotName in partnerConfig.mapping) {
         if (partnerConfig.mapping.hasOwnProperty(htSlotName)) {
@@ -43,9 +42,8 @@ function generateReturnParcels(profile, partnerConfig) {
                     },
                     ref: "",
                     xSlotRef: partnerConfig.xSlots[xSlotName],
-                    requestId: '_' + Date.now(),
-                    xSlotName: xSlotName,
-                    cnvrId: xSlotName + '_' + counter++
+                    requestId: '_' + Math.random().toString(36).substr(2, 9), 
+                    xSlotName: xSlotName
                 });
             }
         }
@@ -124,7 +122,7 @@ describe('parseResponse', function () {
         			            "https://na13.salesforce.com"
         			          ],
         			          "iurl": "http://media.fastclick.net/win.bid",
-        			          "id": "1_0"
+        			          "id": returnParcels1[0].requestId
         			        },
         			        {
         			          "adm": "<img src=\"http://cdn.fastclick.net/media2052489.jpg\">",
@@ -137,7 +135,7 @@ describe('parseResponse', function () {
         			            "https://na13.salesforce.com"
         			          ],
         			          "iurl": "http://media.fastclick.net/win.bid",
-        			          "id": "2_1"
+        			          "id": returnParcels1[1].requestId
         			        },
         			        {
         			          "adm": "<img src=\"http://cdn.fastclick.net/media2052490.jpg\">",
@@ -150,7 +148,7 @@ describe('parseResponse', function () {
         			            "https://na13.salesforce.com"
         			          ],
         			          "iurl": "http://media.fastclick.net/win.bid",
-        			          "id": "3_2"
+        			          "id": returnParcels1[2].requestId
         			        }
         			      ]
         			    }
@@ -162,8 +160,6 @@ describe('parseResponse', function () {
         /* IF SRA, parse all parcels at once */
         if (partnerProfile.architecture) partnerModule.parseResponse(1, adResponseMock1, returnParcels1);
         
-        //console.log(JSON.stringify(returnParcels1));
-
         /* Simple type checking on the returned objects, should always pass */
         it('each parcel should have the required fields set', function () {
             for (var i = 0; i < returnParcels1.length; i++) {
@@ -279,17 +275,17 @@ describe('parseResponse', function () {
   			        {
   			          "impid": "htSlot1_0",
   			          "price": 0.0000,
-  			          "id": "1_0"
+  			          "id": returnParcels2[0].requestId
   			        },
   			        {
    			          "impid": "htSlot1_1",
   			          "price": 0.0000,
-  			          "id": "2_1"
+  			          "id": returnParcels2[1].requestId
   			        },
   			        {
   			          "impid": "htSlot2_2",
   			          "price": 0.0000,
-  			          "id": "3_2"
+  			          "id": returnParcels2[2].requestId
   			        }
   			      ]
   			    }
