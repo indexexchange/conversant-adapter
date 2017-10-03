@@ -13,10 +13,11 @@
   "author": "Index Exchange",
   "license": "UNLICENSED",
   "devDependencies": {
+    "mock-browser": "^0.92.14"
   },
   "dependencies": {
-    "jasmine": "^2.6.0",
     "chai": "^4.0.2",
+    "jasmine": "^2.6.0",
     "proxyquire": "^1.8.0",
     "schema-inspector": "^1.6.8"
   }

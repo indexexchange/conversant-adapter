@@ -26,6 +26,7 @@
 ////////////////////////////////////////////////////////////////////////////////
 
 var Inspector = require('../../../libs/external/schema-inspector.js');
+//var Inspector = require('schema-inspector');
 
 ////////////////////////////////////////////////////////////////////////////////
 // Main ////////////////////////////////////////////////////////////////////////
@@ -35,7 +36,11 @@ var partnerValidator = function (configs) {
     var result = Inspector.validate({
         type: 'object',
         properties: {
-            xSlots: {
+            siteId : {
+            	type : 'string',
+            	minLength: 1
+            },
+        	xSlots: {
                 type: 'object',
                 properties: {
                     '*': {
@@ -43,15 +48,44 @@ var partnerValidator = function (configs) {
                         properties: {
                             placementId: {
                                 type: 'string',
-                                minLength: 1
+                                minLength: 1,
+                                optional: true
+                            },
+                            sizes : {
+                            	type: 'array',
+                            	items: {
+                            		type: 'array',
+                            		exactLength: 2,
+                            		items: {
+                            			type: 'integer'
+                            		}
+                            	}
+                            },
+                            bidfloor : {
+                            	type: 'number',
+                            	optional: true
+                            },
+                            position : {
+                            	type: 'integer',
+                            	optional: true
                             }
                         }
                     }
                 }
+            },
+            mapping : {
+            	type: 'object',
+            	properties: {
+            		'*': {
+            			type : 'array',
+            			items : { type: 'string'},
+            			minLength: 1
+            		}
+            	}
             }
         }
     }, configs);
-
+    
     if (!result.valid) {
         return result.format();
     }
