@@ -72,11 +72,117 @@ function ConversantHtb(configs) {
      * @private {object}
      */
     var __bidTransformers;
+    
+    var w = Browser.topWindow;
+    var n = w.navigator;
 
     /* =====================================
      * Functions
      * ---------------------------------- */
 
+    /* Conversant
+     * ---------------------------------- */
+
+    /**
+     * Return the indicator value for do-not-track
+     */
+    
+    function __getDNT() { 
+    	return (n.doNotTrack === '1' || w.doNotTrack === '1' || n.msDoNotTrack === '1' || n.doNotTrack === 'yes') ? 1 : 0;
+    }
+
+    /**
+     * Return the device object for the bid request
+     */
+    
+    function __getDevice() {
+    	return {
+    		h: Browser.getScreenHeight(),
+    		w: Browser.getScreenWidth(),
+    		dnt : __getDNT(),
+    		language: Browser.getLanguage(),
+    		make: n.vendor ? n.vendor : '',
+    		ua: Browser.getUserAgent()
+    	};
+    }
+    
+    /**
+     * Return site object for the bid request
+     */
+    
+    function __getSite() {
+    	return {
+    		id: configs.siteId,
+    		mobile: w.document.querySelector('meta[name="viewport"][content*="width=device-width"]') !== null ? 1 : 0,
+    		page: Browser.getPageUrl()
+    	};
+    }
+    
+    /**
+     * Return an array of impressions for the bid request
+     */
+    
+    function __getImps(returnParcels) {
+    	var conversantImps = [];
+    	var secure = (Browser.getProtocol().search(/^https:/i) >= 0) ? 1 : 0;
+
+    	// Each parcel is a unique combination of a htSlot and xSlot.
+    	// Since Conversant bid requests do not require unique placement ids, 
+    	// requestIds are used instead.
+    	
+    	for (var i = 0; i < returnParcels.length; ++i) {
+    		var parcel = returnParcels[i];
+    		var xSlot = parcel.xSlotRef;
+    		var imp = {};
+    		var banner = {};
+
+    		imp.id = parcel.requestId;
+    		imp.secure = secure;
+    		imp.displaymanager = '40834-index-client';
+    		imp.displaymanagerver = '0.0.1';
+
+    		if (xSlot.hasOwnProperty('bidfloor')) {
+    			imp.bidfloor = xSlot.bidfloor;
+    		}
+
+    		if (xSlot.hasOwnProperty('placementId')) {
+    			imp.tagid = xSlot.placementId;
+    		}
+
+    		var format = [];
+    		for (var size_idx in xSlot.sizes) {
+    			var size = xSlot.sizes[size_idx];
+    			format.push({w: size[0], h: size[1]});
+    		}
+
+    		banner.format = format;
+
+    		if (xSlot.hasOwnProperty('position')) {
+    			banner.pos = xSlot.position;
+    		}
+
+    		imp.banner = banner;
+
+    		conversantImps.push(imp);
+    	}
+
+    	return conversantImps;
+    }
+    
+    /**
+     * Build and return the header bidding request 
+     */
+    
+    function __buildBidRequest(returnParcels) {
+    	return {
+    		id: System.generateUniqueId(),
+    		imp: __getImps(returnParcels),
+    		site: __getSite(),
+    		device: __getDevice(),
+    		at: 1
+    	};
+    }
+    
     /* Utilities
      * ---------------------------------- */
 
@@ -90,8 +196,9 @@ function ConversantHtb(configs) {
      */
     function __generateRequestObj(returnParcels) {
         var queryObj = {};
-        var baseUrl = Browser.getProtocol() + '';
-        var callbackId = System.generateUniqueId();
+        
+        /* todo : specify length and format for cache buster */
+        var baseUrl = Browser.getProtocol() + '//media.msg.dotomi.com/s2s/header/24?cb=' + System.generateUniqueId();
 
         /* =============================================================================
          * STEP 2  | Generate Request URL
@@ -150,13 +257,21 @@ function ConversantHtb(configs) {
          */
 
         /* PUT CODE HERE */
-
+        
+        queryObj = __buildBidRequest(returnParcels);
+        //console.log(JSON.stringify(queryObj, null, '\t'));
+        
         /* -------------------------------------------------------------------------- */
 
         return {
             url: baseUrl,
             data: queryObj,
-            callbackId: callbackId
+            callbackId: queryObj.id,
+            
+            /* Signal a POST request and the content type */
+            networkParamOverrides: {
+            	method: 'POST'
+            }
         };
     }
 
@@ -174,6 +289,14 @@ function ConversantHtb(configs) {
     function adResponseCallback(adResponse) {
         /* get callbackId from adResponse here */
         var callbackId = 0;
+        
+        if (adResponse.hasOwnProperty('id')) {
+        	callbackId = adResponse.id;
+        }
+        else {
+            throw Whoopsie('Cnvr bid response missing id', adResponse);
+        }
+        
         __baseClass._adResponseStore[callbackId] = adResponse;
     }
     /* -------------------------------------------------------------------------- */
@@ -231,15 +354,26 @@ function ConversantHtb(configs) {
          *
          */
 
-        /* ---------- Proces adResponse and extract the bids into the bids array ------------*/
+        /* ---------- Process adResponse and extract the bids into the bids array ------------*/
 
-        var bids = adResponse;
+        var bids = [];
+        
+        // There should only be one seatbid, but just in case, flatten all bids into a single
+        // array
+        
+        if (adResponse.hasOwnProperty('seatbid')) {
+        	for (var i = 0; i < adResponse.seatbid.length; ++i) {
+        		var seatbid = adResponse.seatbid[i];
+        		bids = bids.concat(seatbid.bid);
+        	}
+        }
 
         /* --------------------------------------------------------------------------------- */
 
         for (var i = 0; i < bids.length; i++) {
 
             var curReturnParcel;
+            var curBid;
 
             for (var j = unusedReturnParcels.length - 1; j >= 0; j--) {
 
@@ -249,9 +383,10 @@ function ConversantHtb(configs) {
                  * is usually some sort of placements or inventory codes. Please replace the someCriteria
                  * key to a key that represents the placement in the configuration and in the bid responses.
                  */
-
-                if (unusedReturnParcels[j].someCriteria === bids[i].someCriteria) { // change this
+            	
+                if (unusedReturnParcels[j].requestId === bids[i].id) { 
                     curReturnParcel = unusedReturnParcels[j];
+                    curBid = bids[i];
                     unusedReturnParcels.splice(j, 1);
                     break;
                 }
@@ -263,12 +398,12 @@ function ConversantHtb(configs) {
 
             /* ---------- Fill the bid variables with data from the bid response here. ------------*/
 
-            var bidPrice; // the bid price for the given slot
-            var bidWidth; // the width of the given slot
-            var bidHeight; // the height of the given slot
-            var bidCreative; // the creative/adm for the given slot that will be rendered if is the winner.
-            var bidDealId; // the dealId if applicable for this slot.
-            var bidIsPass; // true/false value for if the module returned a pass for this slot.
+            var bidPrice = curBid.price; // the bid price for the given slot
+            var bidWidth = curBid.w; // the width of the given slot
+            var bidHeight = curBid.h; // the height of the given slot
+            var bidCreative = curBid.adm; // the creative/adm for the given slot that will be rendered if is the winner.
+            var bidDealId = ''; // the dealId if applicable for this slot.  no deal supported yet.
+            var bidIsPass = bidPrice <= 0 ? true : false; // true/false value for if the module returned a pass for this slot.
 
             /* ---------------------------------------------------------------------------------------*/
 
@@ -366,7 +501,7 @@ function ConversantHtb(configs) {
     (function __constructor() {
         EventsService = SpaceCamp.services.EventsService;
         RenderService = SpaceCamp.services.RenderService;
-
+        
         /* =============================================================================
          * STEP 1  | Partner Configuration
          * -----------------------------------------------------------------------------
@@ -401,15 +536,15 @@ function ConversantHtb(configs) {
                 pmid: 'ix_conv_dealid'
             },
             lineItemType: Constants.LineItemTypes.ID_AND_SIZE,
-            callbackType: Partner.CallbackTypes.ID, // Callback type, please refer to the readme for details
+            callbackType: Partner.CallbackTypes.NONE, // Callback type, please refer to the readme for details
             architecture: Partner.Architectures.SRA, // Request architecture, please refer to the readme for details
             requestType: Partner.RequestTypes.ANY // Request type, jsonp, ajax, or any.
         };
         /* ---------------------------------------------------------------------------------------*/
-
+        
         //? if (DEBUG) {
         var results = ConfigValidators.partnerBaseConfig(configs) || PartnerSpecificValidator(configs);
-
+        
         if (results) {
             throw Whoopsie('INVALID_CONFIG', results);
         }
@@ -425,7 +560,7 @@ function ConversantHtb(configs) {
         var bidTransformerConfigs = {
             //? if (FEATURES.GPT_LINE_ITEMS) {
             targeting: {
-                inputCentsMultiplier: 1, // Input is in cents
+                inputCentsMultiplier: 100, // Input is in dollars
                 outputCentsDivisor: 1, // Output as cents
                 outputPrecision: 0, // With 0 decimal places
                 roundingType: 'FLOOR', // jshint ignore:line
