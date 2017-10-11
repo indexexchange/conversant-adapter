@@ -576,7 +576,7 @@ function ConversantHtb(configs) {
             //? }
             //? if (FEATURES.RETURN_PRICE) {
             price: {
-                inputCentsMultiplier: 1, // Input is in cents
+                inputCentsMultiplier: 100, // Input is in cents
                 outputCentsDivisor: 1, // Output as cents
                 outputPrecision: 0, // With 0 decimal places
                 roundingType: 'NONE',
