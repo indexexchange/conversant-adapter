@@ -506,7 +506,7 @@ function ConversantHtb(configs) {
             partnerId: 'ConversantHtb', // PartnerName
             namespace: 'ConversantHtb', // Should be same as partnerName
             statsId: 'CONV', // Unique partner identifier
-            version: '2.0.0',
+            version: '2.1.0',
             targetingType: 'slot',
             enabledAnalytics: {
                 requestTime: true
