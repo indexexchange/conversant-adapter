@@ -527,6 +527,7 @@ function ConversantHtb(configs) {
                 pm: 'ix_conv_cpm',
                 pmid: 'ix_conv_dealid'
             },
+            bidUnitInCents: 100,
             lineItemType: Constants.LineItemTypes.ID_AND_SIZE,
             callbackType: Partner.CallbackTypes.NONE, // Callback type, please refer to the readme for details
             architecture: Partner.Architectures.SRA, // Request architecture, please refer to the readme for details
