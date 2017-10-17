@@ -431,7 +431,7 @@ function ConversantHtb(configs) {
             curReturnParcel.targeting = {};
 
             //? if (FEATURES.GPT_LINE_ITEMS) {
-            var targetingCpm = __baseClass.__bidTransformers.targeting.apply(bidPrice);
+            var targetingCpm = __baseClass._bidTransformers.targeting.apply(bidPrice);
             var sizeKey = Size.arrayToString(curReturnParcel.size);
 
             if (bidDealId !== '') {
@@ -469,7 +469,7 @@ function ConversantHtb(configs) {
             //? }
 
             //? if (FEATURES.RETURN_PRICE) {
-            curReturnParcel.price = Number(__baseClass.__bidTransformers.price.apply(bidPrice));
+            curReturnParcel.price = Number(__baseClass._bidTransformers.price.apply(bidPrice));
             //? }
 
             //? if (FEATURES.INTERNAL_RENDER) {
