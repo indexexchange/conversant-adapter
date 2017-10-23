@@ -364,6 +364,7 @@ function ConversantHtb(configs) {
         for (var j = 0; j < returnParcels.length; j++) {
             var curReturnParcel = returnParcels[j];
 
+            /* ----------- Fill this out to find a matching bid for the current parcel ------------- */
             var curBid;
 
             for (var i = 0; i < bids.length; i++) {
@@ -397,6 +398,7 @@ function ConversantHtb(configs) {
                 continue;
             }
 
+            /* ---------- Fill the bid variables with data from the bid response here. ------------*/
             /* Using the above variable, curBid, extract various information about the bid and assign it to
              * these local variables */
             var bidPrice = curBid.price; /* the bid price for the given slot */
