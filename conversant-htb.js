@@ -325,26 +325,24 @@ function ConversantHtb(configs) {
      */
     function __parseResponse(sessionId, adResponse, returnParcels) {
 
-        var unusedReturnParcels = returnParcels.slice();
-
         /* =============================================================================
-         * STEP 4  | Parse & store demand response
-         * -----------------------------------------------------------------------------
-         *
-         * Fill the below variables with information about the bid from the partner, using
-         * the adResponse variable that contains your module adResponse.
-         */
+            * STEP 4  | Parse & store demand response
+            * -----------------------------------------------------------------------------
+            *
+            * Fill the below variables with information about the bid from the partner, using
+            * the adResponse variable that contains your module adResponse.
+            */
 
         /* This an array of all the bids in your response that will be iterated over below. Each of
-         * these will be mapped back to a returnParcel object using some criteria explained below.
-         * The following variables will also be parsed and attached to that returnParcel object as
-         * returned demand.
-         *
-         * Use the adResponse variable to extract your bid information and insert it into the
-         * bids array. Each element in the bids array should represent a single bid and should
-         * match up to a single element from the returnParcel array.
-         *
-         */
+            * these will be mapped back to a returnParcel object using some criteria explained below.
+            * The following variables will also be parsed and attached to that returnParcel object as
+            * returned demand.
+            *
+            * Use the adResponse variable to extract your bid information and insert it into the
+            * bids array. Each element in the bids array should represent a single bid and should
+            * match up to a single element from the returnParcel array.
+            *
+            */
 
         /* ---------- Process adResponse and extract the bids into the bids array ------------*/
 
@@ -354,20 +352,22 @@ function ConversantHtb(configs) {
         // array
 
         if (adResponse.hasOwnProperty('seatbid')) {
-        	for (var i = 0; i < adResponse.seatbid.length; ++i) {
-        		var seatbid = adResponse.seatbid[i];
-        		bids = bids.concat(seatbid.bid);
-        	}
+            for (var i = 0; i < adResponse.seatbid.length; ++i) {
+                var seatbid = adResponse.seatbid[i];
+                bids = bids.concat(seatbid.bid);
+            }
         }
+
 
         /* --------------------------------------------------------------------------------- */
 
-        for (var i = 0; i < bids.length; i++) {
+        for (var j = 0; j < returnParcels.length; j++) {
+            var curReturnParcel = returnParcels[j];
 
-            var curReturnParcel;
+            /* ----------- Fill this out to find a matching bid for the current parcel ------------- */
             var curBid;
 
-            for (var j = unusedReturnParcels.length - 1; j >= 0; j--) {
+            for (var i = 0; i < bids.length; i++) {
 
                 /**
                  * This section maps internal returnParcels and demand returned from the bid request.
@@ -376,25 +376,37 @@ function ConversantHtb(configs) {
                  * key to a key that represents the placement in the configuration and in the bid responses.
                  */
 
-                if (unusedReturnParcels[j].requestId === bids[i].id) {
-                    curReturnParcel = unusedReturnParcels[j];
+                if (curReturnParcel.requestId === bids[i].id) {
                     curBid = bids[i];
-                    unusedReturnParcels.splice(j, 1);
                     break;
                 }
             }
 
-            if (!curReturnParcel) {
+            /* ------------------------------------------------------------------------------------*/
+
+            /* HeaderStats information */
+            var headerStatsInfo = {};
+            var htSlotId = curReturnParcel.htSlot.getId();
+            headerStatsInfo[htSlotId] = {};
+            headerStatsInfo[htSlotId][curReturnParcel.requestId] = [curReturnParcel.xSlotName];
+
+            /* No matching bid found so its a pass */
+            if (!curBid) {
+                if (__profile.enabledAnalytics.requestTime) {
+                    __baseClass._emitStatsEvent(sessionId, 'hs_slot_pass', headerStatsInfo);
+                }
+                curReturnParcel.pass = true;
                 continue;
             }
 
             /* ---------- Fill the bid variables with data from the bid response here. ------------*/
+            /* Using the above variable, curBid, extract various information about the bid and assign it to
+                * these local variables */
 
-            var bidPrice = curBid.price; // the bid price for the given slot
-            var bidWidth = curBid.w; // the width of the given slot
-            var bidHeight = curBid.h; // the height of the given slot
-            var bidCreative = curBid.adm; // the creative/adm for the given slot that will be rendered if is the winner.
-            var bidDealId = ''; // the dealId if applicable for this slot.  no deal supported yet.
+            var bidPrice = curBid.price; /* the bid price for the given slot */
+            var bidSize = [curBid.w, curBid.h]; /* the size of the given slot */
+            var bidCreative = curBid.adm; /* the creative/adm for the given slot that will be rendered if is the winner. */
+            var bidDealId = ''; /* the dealId if applicable for this slot. */
             var bidIsPass = bidPrice <= 0 ? true : false; // true/false value for if the module returned a pass for this slot.
 
             /* ---------------------------------------------------------------------------------------*/
@@ -404,29 +416,17 @@ function ConversantHtb(configs) {
                 Scribe.info(__profile.partnerId + ' returned pass for { id: ' + adResponse.id + ' }.');
                 //? }
                 if (__profile.enabledAnalytics.requestTime) {
-                    EventsService.emit('hs_slot_pass', {
-                        sessionId: sessionId,
-                        statsId: __profile.statsId,
-                        htSlotId: curReturnParcel.htSlot.getId(),
-                        xSlotNames: [curReturnParcel.xSlotName]
-                    });
+                    __baseClass._emitStatsEvent(sessionId, 'hs_slot_pass', headerStatsInfo);
                 }
-
                 curReturnParcel.pass = true;
-
                 continue;
             }
 
             if (__profile.enabledAnalytics.requestTime) {
-                EventsService.emit('hs_slot_bid', {
-                    sessionId: sessionId,
-                    statsId: __profile.statsId,
-                    htSlotId: curReturnParcel.htSlot.getId(),
-                    xSlotNames: [curReturnParcel.xSlotName]
-                });
+                __baseClass._emitStatsEvent(sessionId, 'hs_slot_bid', headerStatsInfo);
             }
 
-            curReturnParcel.size = [bidWidth, bidHeight];
+            curReturnParcel.size = bidSize;
             curReturnParcel.targetingType = 'slot';
             curReturnParcel.targeting = {};
 
@@ -449,7 +449,7 @@ function ConversantHtb(configs) {
                     __render, [bidCreative],
                     '',
                     __profile.features.demandExpiry.enabled ? (__profile.features.demandExpiry.value + System.now()) : 0,
-                    curReturnParcel.requestId, [bidWidth, bidHeight]
+                    curReturnParcel.requestId, bidSize
                 );
             } else if (__baseClass._configs.lineItemType === Constants.LineItemTypes.ID_AND_PRICE) {
                 RenderService.registerAdByIdAndPrice(
@@ -483,7 +483,6 @@ function ConversantHtb(configs) {
             curReturnParcel.targeting.pubKitAdId = pubKitAdId;
             //? }
         }
-
     }
 
     /* =====================================
