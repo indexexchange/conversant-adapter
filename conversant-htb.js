@@ -296,19 +296,6 @@ function ConversantHtb(configs) {
     /* Helpers
      * ---------------------------------- */
 
-    /* =============================================================================
-     * STEP 5  | Rendering
-     * -----------------------------------------------------------------------------
-     *
-     * This function will render the ad given. Usually need not be changed unless
-     * special render functionality is needed.
-     *
-     * @param  {Object} doc The document of the iframe where the ad will go.
-     * @param  {string} adm The ad code that came with the original demand.
-     */
-    function __render(doc, adm) {
-        System.documentWrite(doc, adm);
-    }
 
     /**
      * Parses and extracts demand from adResponse according to the adapter and then attaches it
@@ -402,7 +389,7 @@ function ConversantHtb(configs) {
             /* Using the above variable, curBid, extract various information about the bid and assign it to
              * these local variables */
             var bidPrice = curBid.price; /* the bid price for the given slot */
-            var bidSize = [curBid.w, curBid.h]; /* the size of the given slot */
+            var bidSize = [Number(curBid.w), Number(curBid.h)]; /* the size of the given slot */
             var bidCreative = curBid.adm; /* the creative/adm for the given slot that will be rendered if is the winner. */
             var bidDealId = ''; /* the dealId if applicable for this slot. */
             var bidIsPass = bidPrice <= 0 ? true : false; // true/false value for if the module returned a pass for this slot.
@@ -440,26 +427,15 @@ function ConversantHtb(configs) {
             }
             curReturnParcel.targeting[__baseClass._configs.targetingKeys.id] = [curReturnParcel.requestId];
 
-            if (__baseClass._configs.lineItemType === Constants.LineItemTypes.ID_AND_SIZE) {
-                RenderService.registerAdByIdAndSize(
-                    sessionId,
-                    __profile.partnerId,
-                    __render, [bidCreative],
-                    '',
-                    __profile.features.demandExpiry.enabled ? (__profile.features.demandExpiry.value + System.now()) : 0,
-                    curReturnParcel.requestId, bidSize
-                );
-            } else if (__baseClass._configs.lineItemType === Constants.LineItemTypes.ID_AND_PRICE) {
-                RenderService.registerAdByIdAndPrice(
-                    sessionId,
-                    __profile.partnerId,
-                    __render, [bidCreative],
-                    '',
-                    __profile.features.demandExpiry.enabled ? (__profile.features.demandExpiry.value + System.now()) : 0,
-                    curReturnParcel.requestId,
-                    targetingCpm
-                );
-            }
+            RenderService.registerDfpAd(
+                sessionId,
+                __profile.partnerId,
+                bidCreative,
+                curReturnParcel.requestId,
+                bidSize,
+                bidDealId ? bidDealId : targetingCpm,
+                __profile.features.demandExpiry.enabled ? (__profile.features.demandExpiry.value + System.now()) : 0
+            );
             //? }
 
             //? if (FEATURES.RETURN_CREATIVE) {
@@ -474,8 +450,7 @@ function ConversantHtb(configs) {
             var pubKitAdId = RenderService.registerAd(
                 sessionId,
                 __profile.partnerId,
-                __render, [bidCreative],
-                '',
+                bidCreative,
                 __profile.features.demandExpiry.enabled ? (__profile.features.demandExpiry.value + System.now()) : 0
             );
             curReturnParcel.targeting.pubKitAdId = pubKitAdId;
