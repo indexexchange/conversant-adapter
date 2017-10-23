@@ -326,23 +326,23 @@ function ConversantHtb(configs) {
     function __parseResponse(sessionId, adResponse, returnParcels) {
 
         /* =============================================================================
-            * STEP 4  | Parse & store demand response
-            * -----------------------------------------------------------------------------
-            *
-            * Fill the below variables with information about the bid from the partner, using
-            * the adResponse variable that contains your module adResponse.
-            */
+        * STEP 4  | Parse & store demand response
+        * -----------------------------------------------------------------------------
+        *
+        * Fill the below variables with information about the bid from the partner, using
+        * the adResponse variable that contains your module adResponse.
+        */
 
         /* This an array of all the bids in your response that will be iterated over below. Each of
-            * these will be mapped back to a returnParcel object using some criteria explained below.
-            * The following variables will also be parsed and attached to that returnParcel object as
-            * returned demand.
-            *
-            * Use the adResponse variable to extract your bid information and insert it into the
-            * bids array. Each element in the bids array should represent a single bid and should
-            * match up to a single element from the returnParcel array.
-            *
-            */
+        * these will be mapped back to a returnParcel object using some criteria explained below.
+        * The following variables will also be parsed and attached to that returnParcel object as
+        * returned demand.
+        *
+        * Use the adResponse variable to extract your bid information and insert it into the
+        * bids array. Each element in the bids array should represent a single bid and should
+        * match up to a single element from the returnParcel array.
+        *
+        */
 
         /* ---------- Process adResponse and extract the bids into the bids array ------------*/
 
