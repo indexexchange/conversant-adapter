@@ -326,23 +326,23 @@ function ConversantHtb(configs) {
     function __parseResponse(sessionId, adResponse, returnParcels) {
 
         /* =============================================================================
-        * STEP 4  | Parse & store demand response
-        * -----------------------------------------------------------------------------
-        *
-        * Fill the below variables with information about the bid from the partner, using
-        * the adResponse variable that contains your module adResponse.
-        */
+         * STEP 4  | Parse & store demand response
+         * -----------------------------------------------------------------------------
+         *
+         * Fill the below variables with information about the bid from the partner, using
+         * the adResponse variable that contains your module adResponse.
+         */
 
         /* This an array of all the bids in your response that will be iterated over below. Each of
-        * these will be mapped back to a returnParcel object using some criteria explained below.
-        * The following variables will also be parsed and attached to that returnParcel object as
-        * returned demand.
-        *
-        * Use the adResponse variable to extract your bid information and insert it into the
-        * bids array. Each element in the bids array should represent a single bid and should
-        * match up to a single element from the returnParcel array.
-        *
-        */
+         * these will be mapped back to a returnParcel object using some criteria explained below.
+         * The following variables will also be parsed and attached to that returnParcel object as
+         * returned demand.
+         *
+         * Use the adResponse variable to extract your bid information and insert it into the
+         * bids array. Each element in the bids array should represent a single bid and should
+         * match up to a single element from the returnParcel array.
+         *
+         */
 
         /* ---------- Process adResponse and extract the bids into the bids array ------------*/
 
@@ -364,7 +364,6 @@ function ConversantHtb(configs) {
         for (var j = 0; j < returnParcels.length; j++) {
             var curReturnParcel = returnParcels[j];
 
-            /* ----------- Fill this out to find a matching bid for the current parcel ------------- */
             var curBid;
 
             for (var i = 0; i < bids.length; i++) {
@@ -375,7 +374,6 @@ function ConversantHtb(configs) {
                  * is usually some sort of placements or inventory codes. Please replace the someCriteria
                  * key to a key that represents the placement in the configuration and in the bid responses.
                  */
-
                 if (curReturnParcel.requestId === bids[i].id) {
                     curBid = bids[i];
                     break;
@@ -399,10 +397,8 @@ function ConversantHtb(configs) {
                 continue;
             }
 
-            /* ---------- Fill the bid variables with data from the bid response here. ------------*/
             /* Using the above variable, curBid, extract various information about the bid and assign it to
-                * these local variables */
-
+             * these local variables */
             var bidPrice = curBid.price; /* the bid price for the given slot */
             var bidSize = [curBid.w, curBid.h]; /* the size of the given slot */
             var bidCreative = curBid.adm; /* the creative/adm for the given slot that will be rendered if is the winner. */
