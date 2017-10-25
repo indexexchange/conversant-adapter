@@ -543,7 +543,6 @@ function ConversantHtb(configs) {
          * ---------------------------------- */
 
         //? if (TEST) {
-        render: __render,
         parseResponse: __parseResponse,
         generateRequestObj: __generateRequestObj,
         adResponseCallback: adResponseCallback,
