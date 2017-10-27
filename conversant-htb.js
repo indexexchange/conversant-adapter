@@ -364,6 +364,7 @@ function ConversantHtb(configs) {
                  */
                 if (curReturnParcel.requestId === bids[i].id) {
                     curBid = bids[i];
+                    bids.splice(i, 1);
                     break;
                 }
             }
