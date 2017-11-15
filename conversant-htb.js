@@ -23,8 +23,8 @@ var Partner = require('partner.js');
 var Size = require('size.js');
 var SpaceCamp = require('space-camp.js');
 var System = require('system.js');
+var Network = require('network.js');
 var Utilities = require('utilities.js');
-var Whoopsie = require('whoopsie.js');
 var EventsService;
 var RenderService;
 
@@ -32,6 +32,7 @@ var RenderService;
 var ConfigValidators = require('config-validators.js');
 var PartnerSpecificValidator = require('conversant-htb-validator.js');
 var Scribe = require('scribe.js');
+var Whoopsie = require('whoopsie.js');
 //? }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -39,7 +40,7 @@ var Scribe = require('scribe.js');
 ////////////////////////////////////////////////////////////////////////////////
 
 /**
- * Partner module template
+ * Conversant Header Tag Bidder module.
  *
  * @class
  */
@@ -72,7 +73,7 @@ function ConversantHtb(configs) {
      * Functions
      * ---------------------------------- */
 
-    /* Conversant
+    /* Utilities
      * ---------------------------------- */
 
     /**
@@ -187,10 +188,6 @@ function ConversantHtb(configs) {
      * @return {object}
      */
     function __generateRequestObj(returnParcels) {
-        var queryObj = {};
-
-        /* todo : specify length and format for cache buster */
-        var baseUrl = Browser.getProtocol() + '//media.msg.dotomi.com/s2s/header/24?cb=' + System.generateUniqueId();
 
         /* =============================================================================
          * STEP 2  | Generate Request URL
@@ -214,7 +211,7 @@ function ConversantHtb(configs) {
          * callbackId:
          *
          * arbitrary id to match the request with the response in the callback function. If
-         * your endpoint supports passing in an arbitrary ID and returning as part of the response
+         * your endpoint supports passing in an arbitrary ID and returning it as part of the response
          * please use the callbackType: Partner.CallbackTypes.ID and fill out the adResponseCallback.
          * Also please provide this adResponseCallback to your bid request here so that the JSONP
          * response calls it once it has completed.
@@ -224,7 +221,8 @@ function ConversantHtb(configs) {
          * matching by generating unique callbacks for each request using the callbackId.
          *
          * If your endpoint is ajax only, please set the appropriate values in your profile for this,
-         * i.e. Partner.CallbackTypes.NONE and Partner.Requesttypes.AJAX
+         * i.e. Partner.CallbackTypes.NONE and Partner.Requesttypes.AJAX. You also do not need to provide
+         * a callbackId in this case because there is no callback.
          *
          * The return object should look something like this:
          * {
@@ -248,8 +246,14 @@ function ConversantHtb(configs) {
          * }
          */
 
-        /* PUT CODE HERE */
+        /* ---------------------- PUT CODE HERE ------------------------------------ */
+        var queryObj = {};
 
+        /* Change this to your bidder endpoint.*/
+        /* todo : specify length and format for cache buster */
+        var baseUrl = Browser.getProtocol() + '//media.msg.dotomi.com/s2s/header/24?cb=' + System.generateUniqueId();
+
+        /* ---------------- Craft bid request using the above returnParcels --------- */
         queryObj = __buildBidRequest(returnParcels);
         //console.log(JSON.stringify(queryObj, null, '\t'));
 
@@ -296,6 +300,24 @@ function ConversantHtb(configs) {
     /* Helpers
      * ---------------------------------- */
 
+    /* =============================================================================
+     * STEP 5  | Rendering Pixel
+     * -----------------------------------------------------------------------------
+     *
+     */
+
+    /**
+     * This function will render the pixel given.
+     * @param  {string} pixelUrl Tracking pixel img url.
+     */
+    function __renderPixel(pixelUrl) {
+        if (pixelUrl){
+            Network.img({
+                url: decodeURIComponent(pixelUrl),
+                method: 'GET',
+            });
+        }
+    }
 
     /**
      * Parses and extracts demand from adResponse according to the adapter and then attaches it
@@ -351,7 +373,11 @@ function ConversantHtb(configs) {
         for (var j = 0; j < returnParcels.length; j++) {
             var curReturnParcel = returnParcels[j];
 
-            /* ----------- Fill this out to find a matching bid for the current parcel ------------- */
+            var headerStatsInfo = {};
+            var htSlotId = curReturnParcel.htSlot.getId();
+            headerStatsInfo[htSlotId] = {};
+            headerStatsInfo[htSlotId][curReturnParcel.requestId] = [curReturnParcel.xSlotName];
+
             var curBid;
 
             for (var i = 0; i < bids.length; i++) {
@@ -362,20 +388,14 @@ function ConversantHtb(configs) {
                  * is usually some sort of placements or inventory codes. Please replace the someCriteria
                  * key to a key that represents the placement in the configuration and in the bid responses.
                  */
+
+                /* -------- Fill this out to find a matching bid for the current parcel --------- */
                 if (curReturnParcel.requestId === bids[i].id) {
                     curBid = bids[i];
                     bids.splice(i, 1);
                     break;
                 }
             }
-
-            /* ------------------------------------------------------------------------------------*/
-
-            /* HeaderStats information */
-            var headerStatsInfo = {};
-            var htSlotId = curReturnParcel.htSlot.getId();
-            headerStatsInfo[htSlotId] = {};
-            headerStatsInfo[htSlotId][curReturnParcel.requestId] = [curReturnParcel.xSlotName];
 
             /* No matching bid found so its a pass */
             if (!curBid) {
@@ -387,13 +407,32 @@ function ConversantHtb(configs) {
             }
 
             /* ---------- Fill the bid variables with data from the bid response here. ------------*/
+
             /* Using the above variable, curBid, extract various information about the bid and assign it to
              * these local variables */
-            var bidPrice = curBid.price; /* the bid price for the given slot */
-            var bidSize = [Number(curBid.w), Number(curBid.h)]; /* the size of the given slot */
-            var bidCreative = curBid.adm; /* the creative/adm for the given slot that will be rendered if is the winner. */
-            var bidDealId = ''; /* the dealId if applicable for this slot. */
-            var bidIsPass = bidPrice <= 0 ? true : false; // true/false value for if the module returned a pass for this slot.
+
+            /* the bid price for the given slot */
+            var bidPrice = curBid.price;
+
+            /* the size of the given slot */
+            var bidSize = [Number(curBid.w), Number(curBid.h)];
+
+            /* the creative/adm for the given slot that will be rendered if is the winner.
+             * Please make sure the URL is decoded and ready to be document.written.
+             */
+            var bidCreative = curBid.adm;
+
+            /* the dealId if applicable for this slot. */
+            var bidDealId = '';
+
+            /* explicitly pass */
+            var bidIsPass = bidPrice <= 0 ? true : false;
+
+            /* OPTIONAL: tracking pixel url to be fired AFTER rendering a winning creative.
+            * If firing a tracking pixel is not required or the pixel url is part of the adm,
+            * leave empty;
+            */
+            var pixelUrl = '';
 
             /* ---------------------------------------------------------------------------------------*/
 
@@ -444,7 +483,9 @@ function ConversantHtb(configs) {
                 requestId: curReturnParcel.requestId,
                 size: curReturnParcel.size,
                 price: bidDealId ? bidDealId : targetingCpm,
-                timeOfExpiry: __profile.features.demandExpiry.enabled ? (__profile.features.demandExpiry.value + System.now()) : 0
+                timeOfExpiry: __profile.features.demandExpiry.enabled ? (__profile.features.demandExpiry.value + System.now()) : 0,
+                auxFn: __renderPixel,
+                auxArgs: [pixelUrl]
             });
 
             //? if (FEATURES.INTERNAL_RENDER) {
