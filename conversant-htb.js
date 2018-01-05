@@ -45,6 +45,15 @@ var Whoopsie = require('whoopsie.js');
  * @class
  */
 function ConversantHtb(configs) {
+    /* Conversant endpoint only works with AJAX */
+    if (!Network.isXhrSupported()) {
+        //? if (DEBUG) {
+        Scribe.warn('Partner ConversantHtb requires AJAX support. Aborting instantiation.');
+        //? }
+
+        return null;
+    }
+
     /* =====================================
      * Data
      * ---------------------------------- */
