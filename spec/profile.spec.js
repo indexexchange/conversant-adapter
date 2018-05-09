@@ -34,7 +34,7 @@ describe('Partner Profile', function () {
     var expect = require('chai').expect;
     /* -------------------------------------------------------------------- */
 
-    /* Instatiate your partner module */
+    /* Instantiate your partner module */
     var partnerModule = partnerModule(partnerConfig);
     var partnerProfile = partnerModule.profile;
 
@@ -168,6 +168,9 @@ describe('Partner Profile', function () {
                 requestType: {
                     type: 'integer',
                     eq: [0, 1, 2]
+                },
+                bidUnitInCents: {
+                	type: 'integer'
                 }
             }
         }, profile);

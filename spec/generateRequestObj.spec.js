@@ -272,6 +272,11 @@ describe('generateRequestObj', function () {
         	expect(requestObject.data.site.id === partnerConfig.siteId).to.be.true;
         	expect(requestObject.callbackId === requestObject.data.id).to.be.true;
         });
+        
+        it('check gdpr', function() {
+        	expect(requestObject.data).to.have.deep.property('user', {ext: {consent: 'BOQ7WlgOQ7WlgABABwAAABJOACgACAAQABA'}});
+        	expect(requestObject.data).to.have.deep.property('regs', {ext: {gdpr: 1}});
+        })
         /* -----------------------------------------------------------------------*/
 
     /* ---------- IF MRA, generate a single request for all the parcels ---------- */
