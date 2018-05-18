@@ -261,7 +261,7 @@ function ConversantHtb(configs) {
 
         /* Change this to your bidder endpoint.*/
         /* todo : specify length and format for cache buster */
-        var baseUrl = Browser.getProtocol() + '//media.msg.dotomi.com/s2s/header/24?cb=' + System.generateUniqueId();
+        var baseUrl = Browser.getProtocol() + '//web.hb.ad.cpe.dotomi.com/s2s/header/24?cb=' + System.generateUniqueId();
 
         /* ---------------- Craft bid request using the above returnParcels --------- */
         queryObj = __buildBidRequest(returnParcels);

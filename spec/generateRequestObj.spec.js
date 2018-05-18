@@ -250,7 +250,7 @@ describe('generateRequestObj', function () {
         	        	
         	expect(url.protocol).to.match(/^http.?:/);
         	expect(url.pathname).to.match(/\/s2s\/header/);
-        	expect(url.hostname).to.match(/media\.msg\.dotomi\.com/);
+        	expect(url.hostname).to.match(/web\.hb\.ad\.cpe\.dotomi\.com/);
         });
         
         it('check banner objects', function () {
