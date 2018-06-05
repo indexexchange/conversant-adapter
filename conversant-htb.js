@@ -142,7 +142,7 @@ function ConversantHtb(configs) {
     		imp.id = parcel.requestId;
     		imp.secure = secure;
     		imp.displaymanager = '40834-index-client';
-    		imp.displaymanagerver = '0.0.1';
+    		imp.displaymanagerver = __profile.version;
 
     		if (xSlot.hasOwnProperty('bidfloor')) {
     			imp.bidfloor = xSlot.bidfloor;
