@@ -265,6 +265,9 @@ describe('generateRequestObj', function () {
         		if (typeof xSlot.bidfloor != 'undefined') {
         			expect(bid.bidfloor).to.equal(xSlot.bidfloor);
         		}
+        		// verify correct identification of index adapter
+        		expect(bid.displaymanager).to.equal('40834-index-client');
+        		expect(bid.displaymanagerver).to.equal(partnerModule.profile.version);
         	}
         });
         
@@ -276,7 +279,8 @@ describe('generateRequestObj', function () {
         it('check gdpr', function() {
         	expect(requestObject.data).to.have.deep.property('user', {ext: {consent: 'BOQ7WlgOQ7WlgABABwAAABJOACgACAAQABA'}});
         	expect(requestObject.data).to.have.deep.property('regs', {ext: {gdpr: 1}});
-        })
+        });
+        
         /* -----------------------------------------------------------------------*/
 
     /* ---------- IF MRA, generate a single request for all the parcels ---------- */
